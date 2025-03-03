@@ -2,17 +2,24 @@ local RunService = game:GetService("RunService")
 local Players = game:GetService("Players")
 
 local npc = script.Parent
-local rootPart = npc:FindFirstChild("HumanoidRootPart")
 local humanoid = npc:FindFirstChildOfClass("Humanoid")
 local animator = humanoid:FindFirstChildOfClass("Animator") or Instance.new("Animator", humanoid)
 
-if not rootPart or not humanoid then
-	warn("NPC is missing HumanoidRootPart or Humanoid")
+if not humanoid then
+	warn("NPC is missing Humanoid")
 	return
 end
 
--- Set NPC speed
-humanoid.WalkSpeed = 25 -- Adjust speed
+-- Ensure NPC is ready to move
+for _, part in pairs(npc:GetChildren()) do
+	if part:IsA("BasePart") then
+		part.Anchored = false
+		part.CanTouch = true -- Enable touch detection on all parts
+	end
+end
+
+-- Adjust NPC movement settings
+humanoid.WalkSpeed = 10 
 
 -- Load animations
 local function loadAnimation(id)
@@ -25,32 +32,40 @@ local runTrack = loadAnimation("102711978375276")  -- Run Animation ID
 local hitTrack = loadAnimation("92474426514293")  -- Hit Animation ID
 
 -- Damage settings
-local DAMAGE = 10        -- Damage per second
-local DAMAGE_INTERVAL = 1 -- Damage every 1 second
+local DAMAGE = 10
+local DAMAGE_INTERVAL = 1
+local CHASE_DISTANCE = 50
+local ATTACK_RANGE = 10
+local activeDamage = {} -- Prevents multiple damage triggers per player
 
--- Function to apply damage when NPC is touching a player
+-- Function to deal damage
 local function damagePlayer(player)
 	local char = player.Character
 	local hum = char and char:FindFirstChildOfClass("Humanoid")
-
-	if hum then
+	if hum and hum.Health > 0 then
 		if not hitTrack.IsPlaying then
-			hitTrack:Play() -- Play hit animation
+			hitTrack:Play()
 		end
-		hum:TakeDamage(DAMAGE) -- Reduce health
+		hum:TakeDamage(DAMAGE)
 	end
 end
 
--- Function to detect and deal damage while touching player
-rootPart.Touched:Connect(function(hit)
-	local player = Players:GetPlayerFromCharacter(hit.Parent)
-	if player then
-		while player and player.Character and (rootPart.Position - player.Character.PrimaryPart.Position).Magnitude < 5 do
-			damagePlayer(player)
-			wait(DAMAGE_INTERVAL)
-		end
+-- Handle damage when touching any part of the NPC
+for _, part in pairs(npc:GetChildren()) do
+	if part:IsA("BasePart") then
+		part.Touched:Connect(function(hit)
+			local player = Players:GetPlayerFromCharacter(hit.Parent)
+			if player and not activeDamage[player] then
+				activeDamage[player] = true -- Prevent multiple triggers
+				while player and player.Character and (player.Character:FindFirstChild("HumanoidRootPart") and (player.Character.HumanoidRootPart.Position - part.Position).Magnitude < ATTACK_RANGE) do
+					damagePlayer(player)
+					wait(DAMAGE_INTERVAL)
+				end
+				activeDamage[player] = nil -- Allow damage again after they leave
+			end
+		end)
 	end
-end)
+end
 
 -- Function to follow the nearest player
 local function followPlayer()
@@ -63,8 +78,8 @@ local function followPlayer()
 			local playerRoot = char and char:FindFirstChild("HumanoidRootPart")
 
 			if playerRoot then
-				local distance = (playerRoot.Position - rootPart.Position).Magnitude
-				if distance <= 25 and distance < minDist then
+				local distance = (playerRoot.Position - humanoid.Parent:GetPivot().Position).Magnitude
+				if distance <= CHASE_DISTANCE and distance < minDist then
 					target = playerRoot
 					minDist = distance
 				end
@@ -73,12 +88,12 @@ local function followPlayer()
 
 		if target then
 			if not runTrack.IsPlaying then
-				runTrack:Play() -- Play run animation
+				runTrack:Play()
 			end
-			humanoid:MoveTo(target.Position)
+			humanoid:MoveTo(target.Position + Vector3.new(0, 0, -ATTACK_RANGE / 2)) -- Stop just before the player
 		else
 			if runTrack.IsPlaying then
-				runTrack:Stop() -- Stop run animation if no player is found
+				runTrack:Stop()
 			end
 		end
 
