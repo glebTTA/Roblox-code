@@ -51,19 +51,16 @@ local function activateDash()
 	rootPart.CFrame = rootPart.CFrame * CFrame.new(0, 0, -dashDistance) -- Move forward
 
 	-- Wait for dash duration
-	task.wait(dashDuration)
+	wait(dashDuration)
 
 	-- Reset speed
 	humanoid.WalkSpeed = originalSpeed
 	print("Dash complete!")
 
-	-- Start cooldown timer
-	task.delay(cooldownTime, function()
-		cooldown = false
-		button.Text = "Dash"
-		button.Active = true
-		print("Dash is ready to use again!")
-	end)
+	-- Reactivate button
+	button.Text = "Dash"
+	button.Active = true
+	cooldown = false
 end
 
 -- Connect the button click to the function
