@@ -7,7 +7,7 @@ local cooldownTime = 5 -- Cooldown in seconds
 local dashDistance = 50 -- Distance to dash forward
 local dashSpeed = 100 -- Temporary speed boost
 local dashDuration = 0.2 -- Dash lasts 0.2 seconds
-local requiredLevel = 3 -- Minimum level required to dash
+local requiredLevel = 5 -- Minimum level required to dash
 
 -- Function to get the player's level
 local function getPlayerLevel()
@@ -25,7 +25,7 @@ end
 local function activateDash()
 	-- Check if player meets level requirement
 	if getPlayerLevel() < requiredLevel then
-		print("You need to be at least level 3 to use Dash!")
+		print("You need to be at least level 5 to use Dash!")
 		return
 	end
 
