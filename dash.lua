@@ -7,28 +7,9 @@ local cooldownTime = 5 -- Cooldown in seconds
 local dashDistance = 50 -- Distance to dash forward
 local dashSpeed = 100 -- Temporary speed boost
 local dashDuration = 0.2 -- Dash lasts 0.2 seconds
-local requiredLevel = 5 -- Minimum level required to dash
-
--- Function to get the player's level
-local function getPlayerLevel()
-	local leaderstats = player:FindFirstChild("leaderstats") -- Find the leaderstats folder
-	if leaderstats then
-		local level = leaderstats:FindFirstChild("Level") -- Find the Level value
-		if level and level:IsA("IntValue") then
-			return level.Value
-		end
-	end
-	return 0 -- Default to level 0 if not found
-end
 
 -- Function to perform the dash
 local function activateDash()
-	-- Check if player meets level requirement
-	if getPlayerLevel() < requiredLevel then
-		print("You need to be at least level 5 to use Dash!")
-		return
-	end
-
 	-- Check cooldown
 	if cooldown then
 		print("Dash is on cooldown!")
@@ -64,4 +45,4 @@ local function activateDash()
 end
 
 -- Connect the button click to the function
-button.MouseButton1Click:Connect(activateDash)
+button.MouseButton1Click:Connect(activateDash) Can you fix this script to only work when the player has level 3
